@@ -25,10 +25,10 @@ type FormFieldProps<TFieldValues extends FieldValues> = {
 
 export function FormField<TFieldValues extends FieldValues>({ name, form, render }: FormFieldProps<TFieldValues>) {
   return (
-    <Controller
+    <Controller<TFieldValues, any>
       name={name}
       control={form.control}
-      render={({ field, fieldState }) => render({ field, fieldState })}
+      render={({ field, fieldState }) => <>{render({ field, fieldState })}</>}
     />
   );
 }

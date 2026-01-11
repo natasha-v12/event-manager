@@ -5,7 +5,6 @@ import { createClient } from '@/lib/supabase/client';
 import Input from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { showToast } from '@/lib/toast';
-import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 export default function LoginPage() {
@@ -13,10 +12,11 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   useEffect(() => {
-    const params = Object.fromEntries(searchParams?.entries() || []);
+    // Read query params directly from the browser URL to avoid CSR bailout during prerender
+    const query = typeof window !== 'undefined' ? window.location.search : '';
+    const params = Object.fromEntries(new URLSearchParams(query).entries());
     if (params.signup === 'success') {
       showToast('Account created — check your email to confirm', 'success');
       try { router.replace('/login'); } catch {}
@@ -25,7 +25,7 @@ export default function LoginPage() {
       try { showToast(decodeURIComponent(params.error), 'error'); } catch { showToast(params.error as any, 'error'); }
       try { router.replace('/login'); } catch {}
     }
-  }, [searchParams]);
+  }, []);
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
