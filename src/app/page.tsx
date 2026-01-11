@@ -1,6 +1,7 @@
 import Dashboard from '@/components/Dashboard';
 import { createClient } from '@/lib/supabase/server';
 import { logout } from '@/app/actions/auth';
+import { redirect } from 'next/navigation';
 export const dynamic = 'force-dynamic';
 import { getDashboardInsights } from '@/app/actions/insights';
 import InsightsPanel from '@/components/InsightsPanel';
@@ -20,6 +21,10 @@ export default async function DashboardPage({ searchParams }: { searchParams?: {
     user = (data as any)?.user ?? null;
   } catch (err) {
     user = null;
+  }
+
+  if (!user) {
+    redirect('/login');
   }
 
   return (
