@@ -124,7 +124,7 @@ export async function createEvent(payload: any) {
 export async function searchEvents(formData: FormData) {
   const q = formData.get('q')?.toString() || '';
   const { redirect } = await import('next/navigation');
-  const url = q && q.trim().length > 0 ? `/dashboard?q=${encodeURIComponent(q.trim())}` : '/dashboard';
+  const url = q && q.trim().length > 0 ? `/?q=${encodeURIComponent(q.trim())}` : '/';
   redirect(url);
 }
 
