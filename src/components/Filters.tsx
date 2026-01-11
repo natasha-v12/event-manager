@@ -85,7 +85,7 @@ export default function Filters({ search, initialSports = [], selectedSport, ini
   return (
     <div className="mb-0">
       <div className="w-full">
-        <form action="/dashboard" method="get" className="flex flex-wrap items-center gap-3 w-full">
+        <form action="/" method="get" className="flex flex-wrap items-center gap-3 w-full">
           <div className="flex-1 min-w-0">
             <label htmlFor="q" className="text-xs text-muted block mb-1">Search events</label>
             <Input id="q" name="q" defaultValue={search ?? ''} placeholder="Search events by name..." className="w-full bg-transparent border-none text-white placeholder-neutral-400 focus:ring-0" />
@@ -195,7 +195,7 @@ export default function Filters({ search, initialSports = [], selectedSport, ini
             <span>Search</span>
           </Button>
           <Button asChild variant="ghost" size="lg" className="ml-2">
-            <a href="/dashboard" className="flex items-center text-sm text-muted gap-1">Clear <FiX /></a>
+            <a href="/" className="flex items-center text-sm text-muted gap-1">Clear <FiX /></a>
           </Button>
 
           {/* Hidden inputs for selected sports so GET includes them as repeated params */}
