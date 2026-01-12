@@ -6,10 +6,23 @@ import { redirect } from 'next/navigation';
 export async function logout() {
   const supabase = await createClient();
 
-  const { error } = await supabase.auth.signOut();
-  if (error) throw new Error(error.message);
+  try {
+    const { error } = await supabase.auth.signOut();
+    // Supabase may return an error when there is no server-side session (e.g. "Auth session missing").
+    // Treat missing-session as already-signed-out and continue to redirect.
+    if (error && !/auth session missing/i.test(error.message)) {
+      throw new Error(error.message);
+    }
+  } catch (err: any) {
+    // If the error explicitly indicates a missing session, ignore it.
+    if (err?.message && /auth session missing/i.test(err.message)) {
+      // noop - proceed to redirect
+    } else {
+      throw err;
+    }
+  }
 
-  // redirect to login after successful sign-out
+  // redirect to login after successful sign-out (or if there was no session)
   redirect('/login');
 }
 

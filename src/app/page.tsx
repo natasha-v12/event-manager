@@ -1,10 +1,10 @@
 import Dashboard from '@/components/Dashboard';
-import { createClient } from '@/lib/supabase/server';
 import { logout } from '@/app/actions/auth';
 import { redirect } from 'next/navigation';
 export const dynamic = 'force-dynamic';
 import { getDashboardInsights } from '@/app/actions/insights';
 import InsightsPanel from '@/components/InsightsPanel';
+import AuthGate from '@/components/AuthGate';
 
 export default async function DashboardPage({ searchParams }: { searchParams?: { q?: string; sport?: string | string[]; start?: string; end?: string; venue?: string | string[] } }) {
   const insights = await getDashboardInsights();
@@ -14,21 +14,11 @@ export default async function DashboardPage({ searchParams }: { searchParams?: {
   const start = sp?.start ?? '';
   const end = sp?.end ?? '';
   const venue = sp?.venue;
-  const supabase = await createClient();
-  let user: any = null;
-  try {
-    const { data } = await supabase.auth.getUser();
-    user = (data as any)?.user ?? null;
-  } catch (err) {
-    user = null;
-  }
-
-  if (!user) {
-    redirect('/login');
-  }
+  // NOTE: client-side AuthGate will check browser session and redirect if missing.
 
   return (
-    <main className="min-h-screen">
+    <AuthGate>
+      <main className="min-h-screen">
       <div className="w-full max-w-[1800px] mx-auto px-10 py-12">
         <div className="w-full">
           <div className="flex items-center justify-between gap-4">
@@ -39,10 +29,9 @@ export default async function DashboardPage({ searchParams }: { searchParams?: {
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <div style={{ color: 'var(--foreground)' }} className="text-lg font-semibold">{user?.user_metadata?.name ?? user?.email}</div>
-                <form action={logout}>
-                  <button type="submit" className="btn-primary inline-flex items-center gap-2">Logout</button>
-                </form>
+              <form action={logout}>
+                <button type="submit" className="btn-primary inline-flex items-center gap-2">Logout</button>
+              </form>
             </div>
           </div>
 
@@ -62,5 +51,6 @@ export default async function DashboardPage({ searchParams }: { searchParams?: {
         </div>
       </div>
     </main>
+    </AuthGate>
   );
 }
