@@ -40,3 +40,22 @@ export async function signup(formData: FormData) {
   // After signup, redirect to login or dashboard as desired
   redirect('/login');
 }
+
+export async function signIn(formData: FormData) {
+  'use server';
+  const email = formData.get('email')?.toString() || '';
+  const password = formData.get('password')?.toString() || '';
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+export async function signInWithOAuth(provider: string) {
+  'use server';
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signInWithOAuth({ provider: provider as any });
+  if (error) throw new Error(error.message);
+  return data;
+}
