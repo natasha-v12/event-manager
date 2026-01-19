@@ -88,7 +88,7 @@ export default function Filters({ search, initialSports = [], selectedSport, ini
         <form action="/" method="get" className="flex flex-wrap items-center gap-3 w-full">
           <div className="flex-1 min-w-0">
             <label htmlFor="q" className="text-xs text-muted block mb-1">Search events</label>
-            <Input id="q" name="q" defaultValue={search ?? ''} placeholder="Search events by name..." className="w-full bg-transparent border-none text-white placeholder-neutral-400 focus:ring-0" />
+            <Input id="q" name="q" defaultValue={search ?? ''} placeholder="Find events by name..." className="w-full bg-transparent border-none text-white placeholder-neutral-400 focus:ring-0" />
           </div>
 
           <div className="relative w-40">
