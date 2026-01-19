@@ -1,16 +1,17 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { signIn, signInWithOAuth } from '@/app/actions/auth';
 import Input from '@/components/ui/input';
+import Form, { FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { showToast } from '@/lib/toast';
 import Link from 'next/link';
+import { useForm } from 'react-hook-form';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const { register, handleSubmit, formState: { errors } } = useForm<{ email: string; password: string }>();
   const router = useRouter();
 
   useEffect(() => {
@@ -27,20 +28,17 @@ export default function LoginPage() {
     }
   }, []);
 
-  const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSignIn = async (values: { email: string; password: string }) => {
     setLoading(true);
     try {
-      const supabase = createClient();
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        showToast(error.message || 'Sign-in failed', 'error');
-      } else {
-        showToast('Signed in', 'success');
-        try { router.push('/'); } catch {}
-      }
-    } catch (err) {
-      showToast('Sign-in error', 'error');
+      const formData = new FormData();
+      formData.set('email', values.email);
+      formData.set('password', values.password);
+      await signIn(formData);
+      showToast('Signed in', 'success');
+      try { router.push('/'); } catch {}
+    } catch (err: any) {
+      showToast(err?.message || 'Sign-in failed', 'error');
     } finally {
       setLoading(false);
     }
@@ -53,31 +51,34 @@ export default function LoginPage() {
           <h1 className="text-3xl font-bold mb-1" style={{ color: 'var(--foreground)' }}>Sign in</h1>
           <p className="text-sm" style={{ color: 'var(--muted)' }}>Access your events and manage schedules</p>
         </div>
-        <form onSubmit={handleSignIn} className="space-y-4">
-          <div>
-            <label className="text-sm font-medium block mb-1" style={{ color: 'var(--muted)' }}>Email</label>
-            <Input
-              className="bg-transparent border-0 border-b py-2"
-              style={{ borderBottomColor: 'rgba(255,255,255,0.06)', color: 'var(--foreground)' }}
-              placeholder="you@company.com"
-              type="email"
-              value={email}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium block mb-1" style={{ color: 'var(--muted)' }}>Password</label>
-            <Input
-              className="bg-transparent border-0 border-b py-2"
-              style={{ borderBottomColor: 'rgba(255,255,255,0.06)', color: 'var(--foreground)' }}
-              placeholder="••••••••"
-              type="password"
-              value={password}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
-              required
-            />
-          </div>
+        <Form onSubmit={handleSubmit(handleSignIn)} className="space-y-4">
+          <FormItem>
+            <FormLabel>Email</FormLabel>
+            <FormControl>
+              <Input
+                className="bg-transparent border-0 border-b py-2"
+                style={{ borderBottomColor: 'rgba(255,255,255,0.06)', color: 'var(--foreground)' }}
+                placeholder="you@company.com"
+                type="email"
+                {...register('email', { required: 'Email is required' })}
+              />
+            </FormControl>
+            {errors.email && <FormMessage>{errors.email.message}</FormMessage>}
+          </FormItem>
+
+          <FormItem>
+            <FormLabel>Password</FormLabel>
+            <FormControl>
+              <Input
+                className="bg-transparent border-0 border-b py-2"
+                style={{ borderBottomColor: 'rgba(255,255,255,0.06)', color: 'var(--foreground)' }}
+                placeholder="••••••••"
+                type="password"
+                {...register('password', { required: 'Password is required' })}
+              />
+            </FormControl>
+            {errors.password && <FormMessage>{errors.password.message}</FormMessage>}
+          </FormItem>
           <div className="flex items-center justify-between">
             <Link href="/signup" className="text-sm" style={{ color: 'var(--muted)' }}>Create account</Link>
             <Button type="submit" className="btn-primary" disabled={loading}>{loading ? 'Signing in…' : 'Sign in'}</Button>
@@ -96,8 +97,21 @@ export default function LoginPage() {
                 variant="outline"
                 className="w-full flex items-center justify-center gap-2 btn-ghost"
                 onClick={async () => {
-                  const supabase = createClient();
-                  await supabase.auth.signInWithOAuth({ provider: 'google' });
+                  try {
+                    setLoading(true);
+                    const res: any = await signInWithOAuth('google');
+                    const url = res?.url || res?.data?.url;
+                    if (url) {
+                      // redirect browser to Supabase OAuth URL
+                      window.location.href = url;
+                    } else {
+                      showToast('Could not initiate OAuth sign-in', 'error');
+                    }
+                  } catch (err: any) {
+                    showToast(err?.message || 'OAuth sign-in failed', 'error');
+                  } finally {
+                    setLoading(false);
+                  }
                 }}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="h-5 w-5">
@@ -110,7 +124,7 @@ export default function LoginPage() {
               </Button>
             </div>
           </div>
-        </form>
+        </Form>
       </div>
     </div>
   );
